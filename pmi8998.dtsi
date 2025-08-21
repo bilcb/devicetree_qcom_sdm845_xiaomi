@@ -8,6 +8,11 @@
 #include <dt-bindings/thermal/thermal.h>
 
 &spmi_bus {
+	#address-cells = <2>;
+	#size-cells = <0>;
+	interrupt-controller;
+	#interrupt-cells = <4>;
+
 	pmi8998_lsid0: qcom,pmi8998@2 {
 		compatible = "qcom,spmi-pmic";
 		reg = <0x2 SPMI_USID>;
@@ -66,7 +71,7 @@
 		};
 
 		pmi8998_qnovo: qcom,qpnp-qnovo@1500 {
-			compatible = "qcom,qpnp-qnovo";
+			compatible = "qcom,qpnp-qnovo5";
 			reg = <0x1500 0x100>;
 			interrupts = <0x2 0x15 0x0 IRQ_TYPE_NONE>;
 			interrupt-names = "ptrain-done";
@@ -526,22 +531,6 @@
 		};
 
 		pmi8998_wled: qcom,leds@d800 {
-#ifdef CONFIG_BACKLIGHT_QCOM_WLED_MAINLINE
-			compatible = "qcom,pmi8998-wled";
-			reg = <0xd800 0x100>,
-				<0xd900 0x100>;
-			reg-names = "wled-ctrl-base",
-					"wled-sink-base";
-			interrupts = <0x3 0xd8 0x2 IRQ_TYPE_EDGE_RISING>;
-			interrupt-names = "short";
-			qcom,current-boost-limit = <970>;	// qcom,ilim-ma
-			qcom,current-limit-microamp = <25000>;	// qcom,fs-curr-ua
-			qcom,ovp-millivolt = <29600>;		// qcom,ovp-mv
-			qcom,switching-freq = <800>;		// qcom,switch-freq-khz
-			qcom,external-pfet;			// qcom,en-ext-pfet-sc-pro;
-			qcom,enabled-strings = <0 1>;
-			status = "okay";
-#else
 			compatible = "qcom,pmi8998-spmi-wled";
 			reg = <0xd800 0x100>,
 			      <0xd900 0x100>;
@@ -560,7 +549,6 @@
 			qcom,pmic-revid = <&pmi8998_revid>;
 			qcom,auto-calibration;
 			status = "disabled";
-#endif
 		};
 
 		flash_led: qcom,leds@d300 {
@@ -681,30 +669,7 @@
 
 		};
 
-#ifdef CONFIG_LEDS_QPNP_HAPTICS
 		pmi8998_haptics: qcom,haptics@c000 {
-			compatible = "qcom,qpnp-haptics";
-			reg = <0xc000 0x100>;
-			interrupts = <0x3 0xc0 0x0 IRQ_TYPE_EDGE_BOTH>,
-				     <0x3 0xc0 0x1 IRQ_TYPE_EDGE_BOTH>;
-			interrupt-names = "hap-sc-irq", "hap-play-irq";
-			qcom,pmic-misc = <&pmi8998_misc>;
-			qcom,misc-clk-trim-error-reg = <0xf3>;
-			qcom,actuator-type = <0>;
-			qcom,play-mode = "direct";
-			qcom,vmax-mv = <3200>;
-			qcom,ilim-ma = <800>;
-			qcom,sc-dbc-cycles = <8>;
-			qcom,wave-play-rate-us = <6667>;
-			qcom,en-brake;
-			qcom,lra-high-z = "opt1";
-			qcom,lra-auto-res-mode = "qwd";
-			qcom,lra-res-cal-period = <4>;
-			qcom,pmic-revid = <&pmi8998_revid>;
-			status = "disabled";
-		};
-#else /* QTI HAPTICS */
-		pmi8998_haptics: qcom,haptic@c000 {
 			compatible = "qcom,haptics";
 			reg = <0xc000 0x100>;
 			interrupts = <0x3 0xc0 0x0 IRQ_TYPE_EDGE_BOTH>,
@@ -712,21 +677,20 @@
 			interrupt-names = "hap-sc-irq", "hap-play-irq";
 			qcom,actuator-type = "lra";
 			qcom,vmax-mv = <3200>;
-			// qcom,lra-high-z = "opt1"; Need to implement that later
 			qcom,play-rate-us = <6667>;
 			qcom,lra-resonance-sig-shape = "sine";
 			qcom,lra-auto-resonance-mode = "qwd";
 			qcom,lra-allow-variable-play-rate;
-			qcom,pmic-revid = <&pmi8998_revid>;
-			status = "disabled";
 
 			wf_0 {
 				/* CLICK */
 				qcom,effect-id = <0>;
 				qcom,wf-vmax-mv = <3600>;
-				qcom,wf-pattern = [3e 3e 3e];
+				qcom,wf-pattern = [3e 3e 3e 3e 3e 3e 3e 3e];
 				qcom,wf-play-rate-us = <6667>;
-				qcom,wf-brake-pattern = [01 00 00 00];
+				qcom,wf-brake-pattern = [00 00 00 00];
+				qcom,wf-repeat-count = <1>;
+				qcom,wf-s-repeat-count = <1>;
 				qcom,lra-auto-resonance-disable;
 			};
 
@@ -734,9 +698,10 @@
 				/* DOUBLE CLICK */
 				qcom,effect-id = <1>;
 				qcom,wf-vmax-mv = <3600>;
-				qcom,wf-pattern = [7e 7e 02 02 02 02 02 02];
-				qcom,wf-play-rate-us = <7143>;
-				qcom,wf-repeat-count = <2>;
+				qcom,wf-pattern = [3e 3e 3e 3e 3e 3e 3e 3e];
+				qcom,wf-play-rate-us = <6667>;
+				qcom,wf-brake-pattern = [00 00 00 00];
+				qcom,wf-repeat-count = <1>;
 				qcom,wf-s-repeat-count = <1>;
 				qcom,lra-auto-resonance-disable;
 			};
@@ -745,8 +710,11 @@
 				/* TICK */
 				qcom,effect-id = <2>;
 				qcom,wf-vmax-mv = <3600>;
-				qcom,wf-pattern = [7e 7e];
-				qcom,wf-play-rate-us = <4000>;
+				qcom,wf-pattern = [3e 3e 3e 3e 3e 3e 3e 3e];
+				qcom,wf-play-rate-us = <6667>;
+				qcom,wf-brake-pattern = [00 00 00 00];
+				qcom,wf-repeat-count = <1>;
+				qcom,wf-s-repeat-count = <1>;
 				qcom,lra-auto-resonance-disable;
 			};
 
@@ -754,8 +722,11 @@
 				/* THUD */
 				qcom,effect-id = <3>;
 				qcom,wf-vmax-mv = <3600>;
-				qcom,wf-pattern = [7e 7e 7e];
+				qcom,wf-pattern = [3e 3e 3e 3e 3e 3e 3e 3e];
 				qcom,wf-play-rate-us = <6667>;
+				qcom,wf-brake-pattern = [00 00 00 00];
+				qcom,wf-repeat-count = <1>;
+				qcom,wf-s-repeat-count = <1>;
 				qcom,lra-auto-resonance-disable;
 			};
 
@@ -763,8 +734,11 @@
 				/* POP */
 				qcom,effect-id = <4>;
 				qcom,wf-vmax-mv = <3600>;
-				qcom,wf-pattern = [7e 7e];
-				qcom,wf-play-rate-us = <5000>;
+				qcom,wf-pattern = [3e 3e 3e 3e 3e 3e 3e 3e];
+				qcom,wf-play-rate-us = <6667>;
+				qcom,wf-brake-pattern = [00 00 00 00];
+				qcom,wf-repeat-count = <1>;
+				qcom,wf-s-repeat-count = <1>;
 				qcom,lra-auto-resonance-disable;
 			};
 
@@ -772,13 +746,14 @@
 				/* HEAVY CLICK */
 				qcom,effect-id = <5>;
 				qcom,wf-vmax-mv = <3600>;
-				qcom,wf-pattern = [7e 7e 7e];
+				qcom,wf-pattern = [3e 3e 3e 3e 3e 3e 3e 3e];
 				qcom,wf-play-rate-us = <6667>;
-				qcom,wf-brake-pattern = [03 00 00 00];
+				qcom,wf-brake-pattern = [00 00 00 00];
+				qcom,wf-repeat-count = <1>;
+				qcom,wf-s-repeat-count = <1>;
 				qcom,lra-auto-resonance-disable;
 			};
 		};
-#endif
 	};
 };
 
@@ -831,19 +806,27 @@
 		cooling-maps {
 			vbat_cpu4 {
 				trip = <&low_vbat>;
-				cooling-device = <&cpu4_isolate 1 1>;
+				cooling-device =
+					<&CPU4 THERMAL_MAX_LIMIT
+						THERMAL_MAX_LIMIT>;
 			};
 			vbat_cpu5 {
 				trip = <&low_vbat>;
-				cooling-device = <&cpu5_isolate 1 1>;
+				cooling-device =
+					<&CPU5 THERMAL_MAX_LIMIT
+						THERMAL_MAX_LIMIT>;
 			};
 			vbat_map6 {
 				trip = <&low_vbat>;
-				cooling-device = <&cpu6_isolate 1 1>;
+				cooling-device =
+					<&CPU6 THERMAL_MAX_LIMIT
+						THERMAL_MAX_LIMIT>;
 			};
 			vbat_map7 {
 				trip = <&low_vbat>;
-				cooling-device = <&cpu7_isolate 1 1>;
+				cooling-device =
+					<&CPU7 THERMAL_MAX_LIMIT
+						THERMAL_MAX_LIMIT>;
 			};
 		};
 	};
@@ -909,11 +892,15 @@
 			};
 			soc_map6 {
 				trip = <&low_soc>;
-				cooling-device = <&cpu6_isolate 1 1>;
+				cooling-device =
+					<&CPU6 THERMAL_MAX_LIMIT
+						THERMAL_MAX_LIMIT>;
 			};
 			soc_map7 {
 				trip = <&low_soc>;
-				cooling-device = <&cpu7_isolate 1 1>;
+				cooling-device =
+					<&CPU7 THERMAL_MAX_LIMIT
+						THERMAL_MAX_LIMIT>;
 			};
 		};
 	};

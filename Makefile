@@ -1,5 +1,5 @@
-# SPDX-License-Identifier: GPL-2.0
+dts-dirs += sdm845
 
 always		:= $(dtb-y)
 subdir-y	:= $(dts-dirs)
-clean-files    := *.dtb *.dtbo
+clean-files	:= *.dtb *.dtbo

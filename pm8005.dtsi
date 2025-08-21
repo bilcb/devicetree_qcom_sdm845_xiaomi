@@ -3,13 +3,15 @@
  * Copyright (c) 2016-2018, The Linux Foundation. All rights reserved.
  */
 
-#include <dt-bindings/interrupt-controller/irq.h>
-#include <dt-bindings/input/input.h>
-#include <dt-bindings/interrupt-controller/irq.h>
 #include <dt-bindings/spmi/spmi.h>
-#include <dt-bindings/iio/qcom,spmi-vadc.h>
+#include <dt-bindings/interrupt-controller/irq.h>
 
 &spmi_bus {
+	#address-cells = <2>;
+	#size-cells = <0>;
+	interrupt-controller;
+	#interrupt-cells = <4>;
+
 	qcom,pm8005@4 {
 		compatible = "qcom,spmi-pmic";
 		reg = <0x4 SPMI_USID>;
@@ -49,28 +51,28 @@
 		#size-cells = <0>;
 
 		regulator@1400 {
-			compatible = "qcom,qpnp-regulator";
+			compatible = "qcom,pm8005-rpmh-regulators";
 			reg = <0x1400 0x100>;
 			regulator-name = "pm8005_s1";
 			status = "disabled";
 		};
 
 		regulator@1700 {
-			compatible = "qcom,qpnp-regulator";
+			compatible = "qcom,pm8005-rpmh-regulators";
 			reg = <0x1700 0x100>;
 			regulator-name = "pm8005_s2";
 			status = "disabled";
 		};
 
 		regulator@1a00 {
-			compatible = "qcom,qpnp-regulator";
+			compatible = "qcom,pm8005-rpmh-regulators";
 			reg = <0x1a00 0x100>;
 			regulator-name = "pm8005_s3";
 			status = "disabled";
 		};
 
 		regulator@1d00 {
-			compatible = "qcom,qpnp-regulator";
+			compatible = "qcom,pm8005-rpmh-regulators";
 			reg = <0x1d00 0x100>;
 			regulator-name = "pm8005_s4";
 			status = "disabled";
